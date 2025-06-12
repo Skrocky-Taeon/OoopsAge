@@ -1,0 +1,197 @@
+/* Custom styles for the MySkinAge app */
+
+/* Header styling */
+.app-header {
+    padding: 1.5rem 0;
+    background: var(--bs-dark);
+    border-bottom: 1px solid var(--bs-primary);
+}
+
+.app-title {
+    color: var(--bs-info);
+    font-weight: 700;
+}
+
+/* Upload area styling */
+.upload-area {
+    border: 2px dashed var(--bs-info);
+    border-radius: 10px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    background: rgba(13, 202, 240, 0.05);
+}
+
+.upload-guidelines {
+    border-top: 1px solid rgba(13, 202, 240, 0.2);
+    padding-top: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--bs-info-text);
+}
+
+.upload-area:hover, .upload-area.dragover {
+    border-color: var(--bs-primary);
+    background: rgba(13, 202, 240, 0.1);
+}
+
+.upload-icon {
+    font-size: 3rem;
+    color: var(--bs-info);
+    margin-bottom: 1rem;
+}
+
+/* Results page styling */
+.results-container {
+    background: var(--bs-dark);
+    border-radius: 10px;
+    padding: 2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Login tooltip styling */
+.login-tooltip {
+    animation: fadeIn 0.3s ease;
+    z-index: 1000;
+    filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.2));
+}
+
+.login-tooltip .card {
+    max-width: 300px;
+    border: none;
+    border-radius: 8px;
+    position: relative;
+}
+
+.login-tooltip .card:before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: 15px;
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid var(--bs-warning);
+}
+
+.login-tooltip .login-now-btn {
+    margin-top: 5px;
+    transition: all 0.2s ease;
+}
+
+.login-tooltip .login-now-btn:hover {
+    transform: translateY(-2px);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.skin-age-display {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--bs-info);
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.feature-bar {
+    height: 8px;
+    border-radius: 4px;
+    background: var(--bs-gray-700);
+}
+
+.feature-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: var(--bs-info);
+    transition: width 1s ease-out;
+}
+
+.feedback-box {
+    background: rgba(13, 202, 240, 0.1);
+    border-left: 4px solid var(--bs-info);
+    padding: 1rem;
+    border-radius: 0 5px 5px 0;
+    margin-top: 2rem;
+}
+
+/* History list styling */
+.history-item {
+    border-left: 3px solid var(--bs-info);
+    padding: 0.5rem 1rem;
+    margin-bottom: 0.5rem;
+    background: rgba(13, 202, 240, 0.05);
+    transition: all 0.2s ease;
+}
+
+.history-item:hover {
+    background: rgba(13, 202, 240, 0.1);
+    transform: translateX(5px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .upload-area {
+        padding: 1.5rem;
+    }
+    
+    .skin-age-display {
+        font-size: 2.5rem;
+    }
+    
+    .feedback-box {
+        margin-top: 1.5rem;
+    }
+}
+
+/* Loading animation */
+.spinner-border.text-info {
+    height: 3rem;
+    width: 3rem;
+}
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.loading-content {
+    text-align: center;
+    padding: 2rem;
+    background: var(--bs-dark);
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Pulse animation for beta signup button */
+.pulse-btn {
+    animation: pulse 2s infinite;
+    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+    }
+    
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+    }
+    
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+    }
+}

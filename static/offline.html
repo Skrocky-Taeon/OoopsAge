@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skin Diary - Offline</title>
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+        .offline-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        .btn-reconnect {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card shadow">
+                    <div class="card-body py-5">
+                        <h1 class="offline-icon">📡</h1>
+                        <h2 class="card-title mb-3">You're offline</h2>
+                        <p class="card-text mb-4">
+                            It looks like you've lost your internet connection. 
+                            Skin Diary needs an active connection to analyze your skin.
+                        </p>
+                        <button class="btn btn-primary btn-reconnect" onclick="window.location.reload()">
+                            Try Again
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col text-center">
+                <h4>Skin Diary</h4>
+                <p class="text-muted">Analyze your skin age and get personalized skincare recommendations</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

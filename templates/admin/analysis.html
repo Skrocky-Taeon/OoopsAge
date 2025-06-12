@@ -1,0 +1,286 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">관리자 대시보드: 분석 기록</h1>
+        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> 홈으로
+        </a>
+    </div>
+    
+    <!-- 통계 요약 카드 섹션 -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card bg-dark h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">총 분석 건수</h5>
+                    <h2 class="display-4 fw-bold text-info">{{ stats.total }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card bg-dark h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">회원 분석</h5>
+                    <h2 class="display-4 fw-bold text-primary">{{ stats.member }}</h2>
+                    <small class="text-muted">{{ (stats.member / stats.total * 100)|round|int if stats.total else 0 }}%</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card bg-dark h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">비회원 분석</h5>
+                    <h2 class="display-4 fw-bold text-warning">{{ stats.guest }}</h2>
+                    <small class="text-muted">{{ (stats.guest / stats.total * 100)|round|int if stats.total else 0 }}%</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card bg-dark h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">평균 피부 연령</h5>
+                    <h2 class="display-4 fw-bold text-success">{{ stats.avg_skin_age }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 피부 연령 비교 카드 -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="card bg-dark">
+                <div class="card-header">
+                    <h5 class="mb-0">회원/비회원 피부 연령 비교</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 text-center">
+                            <h6>회원 평균 피부 연령</h6>
+                            <h3 class="text-primary">{{ stats.avg_member_skin_age }}</h3>
+                        </div>
+                        <div class="col-md-6 text-center">
+                            <h6>비회원 평균 피부 연령</h6>
+                            <h3 class="text-warning">{{ stats.avg_guest_skin_age }}</h3>
+                        </div>
+                    </div>
+                    <div class="progress mt-3" style="height: 25px;">
+                        <div class="progress-bar bg-primary" role="progressbar" 
+                             style="width: {{ (stats.member / stats.total * 100)|round|int if stats.total else 0 }}%">
+                            회원 ({{ stats.member }})
+                        </div>
+                        <div class="progress-bar bg-warning" role="progressbar" 
+                             style="width: {{ (stats.guest / stats.total * 100)|round|int if stats.total else 0 }}%">
+                            비회원 ({{ stats.guest }})
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-3">
+            <div class="card bg-dark">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">필터</h5>
+                    <form action="{{ url_for('admin_analysis') }}" method="get" class="d-flex">
+                        <select name="filter" class="form-select form-select-sm me-2" style="width: auto;">
+                            <option value="all" {% if filter_type == 'all' %}selected{% endif %}>모든 사용자</option>
+                            <option value="members" {% if filter_type == 'members' %}selected{% endif %}>회원만</option>
+                            <option value="guests" {% if filter_type == 'guests' %}selected{% endif %}>비회원만</option>
+                        </select>
+                        <select name="date_range" class="form-select form-select-sm me-2" style="width: auto;">
+                            <option value="7days" {% if date_range == '7days' %}selected{% endif %}>최근 7일</option>
+                            <option value="30days" {% if date_range == '30days' %}selected{% endif %}>최근 30일</option>
+                            <option value="all" {% if date_range == 'all' %}selected{% endif %}>모든 기간</option>
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-info">적용</button>
+                    </form>
+                </div>
+                <div class="card-body">
+                    <canvas id="dailyStatsChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 분석 기록 테이블 -->
+    <div class="card bg-dark mb-4">
+        <div class="card-header bg-dark d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">분석 기록 목록 ({{ stats.total }}개)</h5>
+            <span class="badge bg-info">{{ filter_type }} / {{ date_range }}</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-dark table-striped table-hover mb-0">
+                    <thead class="table-secondary">
+                        <tr>
+                            <th>ID</th>
+                            <th>이미지</th>
+                            <th>사용자</th>
+                            <th>유형</th>
+                            <th>피부 나이</th>
+                            <th>생성 날짜</th>
+                            <th>작업</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for analysis in analyses.items %}
+                        <tr>
+                            <td>{{ analysis.id }}</td>
+                            <td>
+                                <img src="{{ analysis.image_url }}" alt="Skin Analysis" 
+                                     class="img-thumbnail" style="max-width: 60px; max-height: 60px;">
+                            </td>
+                            <td>{{ user_info[analysis.id] }}</td>
+                            <td>
+                                {% if analysis.user_account_id %}
+                                <span class="badge bg-primary">회원</span>
+                                {% else %}
+                                <span class="badge bg-warning">비회원</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ analysis.skin_age|round(1) }}</td>
+                            <td>{{ analysis.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                <a href="{{ url_for('results', analysis_id=analysis.id) }}" 
+                                   class="btn btn-sm btn-info" target="_blank">
+                                    <i class="fas fa-eye"></i> 상세
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer bg-dark">
+            <!-- 페이지네이션 -->
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if analyses.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('admin_analysis', page=analyses.prev_num, filter=filter_type, date_range=date_range) }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&laquo;</span>
+                    </li>
+                    {% endif %}
+                    
+                    {% for page_num in analyses.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                        {% if page_num %}
+                            {% if page_num == analyses.page %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                            {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('admin_analysis', page=page_num, filter=filter_type, date_range=date_range) }}">{{ page_num }}</a>
+                            </li>
+                            {% endif %}
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">…</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if analyses.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('admin_analysis', page=analyses.next_num, filter=filter_type, date_range=date_range) }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&raquo;</span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+    <!-- 모바일 화면에서 추가 정보 -->
+    <div class="d-md-none alert alert-info">
+        <h5><i class="fas fa-info-circle"></i> 모바일 뷰 사용 안내</h5>
+        <p>테이블을 좌우로 스와이프하여 모든 데이터를 확인할 수 있습니다.</p>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 차트 데이터 준비
+    const dailyStats = {{ stats.daily|tojson }};
+    const labels = Object.keys(dailyStats).sort();
+    const totalData = [];
+    const memberData = [];
+    const guestData = [];
+    
+    // 날짜 순으로 정렬하여 데이터 추출
+    for (let i = labels.length - 1; i >= 0; i--) {
+        const date = labels[i];
+        const stat = dailyStats[date];
+        totalData.push(stat.total);
+        memberData.push(stat.member);
+        guestData.push(stat.guest);
+    }
+    
+    // 차트 생성
+    const ctx = document.getElementById('dailyStatsChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels.slice().reverse(), // 날짜 순서 반대로
+            datasets: [
+                {
+                    label: '총 분석',
+                    data: totalData,
+                    backgroundColor: 'rgba(23, 162, 184, 0.2)',
+                    borderColor: 'rgba(23, 162, 184, 1)',
+                    borderWidth: 1,
+                    fill: true
+                },
+                {
+                    label: '회원',
+                    data: memberData,
+                    backgroundColor: 'rgba(13, 110, 253, 0.2)',
+                    borderColor: 'rgba(13, 110, 253, 1)',
+                    borderWidth: 1,
+                    fill: true
+                },
+                {
+                    label: '비회원',
+                    data: guestData,
+                    backgroundColor: 'rgba(255, 193, 7, 0.2)',
+                    borderColor: 'rgba(255, 193, 7, 1)',
+                    borderWidth: 1,
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: '일별 분석 통계'
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

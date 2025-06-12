@@ -1,0 +1,646 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        {% if is_guest %}
+        <div class="alert alert-warning mb-4">
+            <i class="fas fa-exclamation-triangle me-2"></i> 
+            <strong>{{ t('guest_result_warning') }}</strong>
+            <div class="mt-2">
+                <a href="{{ url_for('login', last_analysis_id=analysis.id) }}" class="btn btn-sm btn-warning">
+                    <i class="fas fa-sign-in-alt me-1"></i> {{ t('login_now') }}
+                </a>
+                <a href="{{ url_for('register', last_analysis_id=analysis.id) }}" class="btn btn-sm btn-outline-warning ms-2">
+                    <i class="fas fa-user-plus me-1"></i> {{ t('register') }}
+                </a>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="results-container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>{{ t('results_title') }}</h2>
+                <div>
+                    <a href="/" class="btn btn-outline-info">
+                        <i class="fas fa-camera me-1"></i> {{ t('new_analysis') }}
+                    </a>
+                </div>
+            </div>
+            
+            <div class="row">
+                <!-- Image and Age Result -->
+                <div class="col-md-5 mb-4 mb-md-0">
+                    <div class="text-center">
+                        <img src="{{ analysis.image_url }}" alt="Your skin image" class="img-fluid rounded mb-3" style="max-height: 300px;">
+                        <div class="skin-age-display">
+                            {{ analysis.skin_age|round(1) }}
+                            <small class="d-block fs-6 text-muted">{{ t('estimated_skin_age') }}</small>
+                        </div>
+                        
+                        {% if analysis.actual_age %}
+                        <div class="mt-3 age-comparison">
+                            <div class="card bg-dark border-info">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ t('age_comparison') }}</h5>
+                                    <div class="row text-center">
+                                        <div class="col-6">
+                                            <div class="fw-bold fs-4">{{ analysis.actual_age }}</div>
+                                            <small>{{ t('actual_age') }}</small>
+                                        </div>
+                                        <div class="col-6">
+                                            {% if analysis.skin_age > analysis.actual_age %}
+                                            <div class="fw-bold fs-4 text-danger">+{{ (analysis.skin_age - analysis.actual_age)|round(1) }}</div>
+                                            <small>{{ t('age_difference') }}</small>
+                                            {% elif analysis.skin_age < analysis.actual_age %}
+                                            <div class="fw-bold fs-4 text-success">-{{ (analysis.actual_age - analysis.skin_age)|round(1) }}</div>
+                                            <small>{{ t('age_difference') }}</small>
+                                            {% else %}
+                                            <div class="fw-bold fs-4">0</div>
+                                            <small>{{ t('age_difference') }}</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Features Analysis -->
+                <div class="col-md-7">
+                    <h4 class="mb-3">{{ t('features_analysis') }}</h4>
+                    
+                    <div class="features-list">
+                        {% for feature_name, feature_value in analysis.features.items() %}
+                        <div class="mb-3" data-feature-value="{{ feature_value }}">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="text-capitalize">{{ get_feature_name(feature_name) }}</span>
+                                <span class="text-muted small">{{ (feature_value * 100)|round|int }}%</span>
+                            </div>
+                            <div class="feature-bar">
+                                <div class="feature-fill" style="width: {{ feature_value * 100 }}%;"></div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Personalized Feedback - Language specific -->
+                    <div class="feedback-box">
+                        <h5><i class="fas fa-comment-dots text-info me-2"></i> {{ t('personalized_feedback') }}</h5>
+                        <div class="feedback-content">
+                            {% if lang == 'ko' %}
+                                {% if '\n\n' in current_feedback %}
+                                    {% set feedback_parts = current_feedback.split('\n\n') %}
+                                    {% if feedback_parts|length > 1 %}
+                                        {{ feedback_parts[1]|nl2br|safe }}
+                                    {% else %}
+                                        {{ current_feedback|nl2br|safe }}
+                                    {% endif %}
+                                {% else %}
+                                    {{ current_feedback|nl2br|safe }}
+                                {% endif %}
+                            {% else %}
+                                {% if '\n\n' in current_feedback %}
+                                    {% set feedback_parts = current_feedback.split('\n\n') %}
+                                    {{ feedback_parts[0]|nl2br|safe }}
+                                {% else %}
+                                    {{ current_feedback|nl2br|safe }}
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Personalized Recommendations Section -->
+            <div class="mt-5">
+                <h4 class="mb-3">{{ t('product_recommendations') }}</h4>
+                <div class="card bg-dark">
+                    <div class="card-body">
+                        <!-- Recommendations from AI Analysis -->
+                        <div class="mb-4">
+                            <h5 class="text-info mb-2">{{ t('skin_recommendations') }}</h5>
+                            <div class="recommendation-content">
+                                {% if lang == 'ko' %}
+                                    {% set recommendations = current_feedback.split('추천 관리법:') %}
+                                    {% if recommendations|length > 1 %}
+                                        {{ recommendations[1]|nl2br|safe }}
+                                    {% else %}
+                                        <p>{{ t('no_recommendations') }}</p>
+                                    {% endif %}
+                                {% else %}
+                                    {% set recommendations = current_feedback.split('Recommendations:') %}
+                                    {% if recommendations|length > 1 %}
+                                        {{ recommendations[1]|nl2br|safe }}
+                                    {% else %}
+                                        <p>{{ t('no_recommendations') }}</p>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Product Recommendations -->
+                        <h5 class="text-info mb-3">{{ t('suggested_products') }}</h5>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="card bg-dark border border-info">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-bottle-water fa-2x text-info mb-3"></i>
+                                        <h5 class="card-title">Hydrating Serum</h5>
+                                        <p class="small text-muted">Perfect for adding moisture to your skin</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-dark border border-info">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-sun fa-2x text-info mb-3"></i>
+                                        <h5 class="card-title">SPF 50 Sunscreen</h5>
+                                        <p class="small text-muted">Protect against UV damage</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-dark border border-info">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-face-smile fa-2x text-info mb-3"></i>
+                                        <h5 class="card-title">Retinol Night Cream</h5>
+                                        <p class="small text-muted">Reduce fine lines while you sleep</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Detailed Skin Care Tips -->
+            <div class="mt-5">
+                <h4 class="mb-3">{{ t('detailed_skin_tips') or '맞춤형 피부 관리 팁' }}</h4>
+                <div class="card bg-dark">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5 class="text-info border-bottom pb-2 mb-3">
+                                    <i class="fas fa-calendar-day me-2"></i>
+                                    {{ t('daily_routine') }}
+                                </h5>
+                                <ul class="ps-4">
+                                    {% if analysis.features.get('wrinkles', 0) > 0.5 or analysis.features.get('fine_lines', 0) > 0.5 %}
+                                    <li class="mb-2">
+                                        <strong>{{ t('morning') }}:</strong> 
+                                        {{ t('use_vitamin_c_serum') }}
+                                    </li>
+                                    <li class="mb-2">
+                                        <strong>{{ t('night') }}:</strong> 
+                                        {{ t('use_retinol_products') }}
+                                    </li>
+                                    {% elif analysis.features.get('pigmentation', 0) > 0.5 or analysis.features.get('dark_spots', 0) > 0.5 %}
+                                    <li class="mb-2">
+                                        <strong>{{ t('morning') }}:</strong> 
+                                        {{ t('use_brightening_serum') }}
+                                    </li>
+                                    <li class="mb-2">
+                                        <strong>{{ t('night') }}:</strong> 
+                                        {{ t('exfoliate_gently') }}
+                                    </li>
+                                    {% elif analysis.features.get('dryness', 0) > 0.5 %}
+                                    <li class="mb-2">
+                                        <strong>{{ t('morning') }}:</strong> 
+                                        {{ t('hyaluronic_acid_serum') }}
+                                    </li>
+                                    <li class="mb-2">
+                                        <strong>{{ t('night') }}:</strong> 
+                                        {{ t('use_thick_moisturizer') }}
+                                    </li>
+                                    {% elif analysis.features.get('oiliness', 0) > 0.5 %}
+                                    <li class="mb-2">
+                                        <strong>{{ t('morning') }}:</strong> 
+                                        {{ t('use_lightweight_moisturizer') }}
+                                    </li>
+                                    <li class="mb-2">
+                                        <strong>{{ t('night') }}:</strong> 
+                                        {{ t('niacinamide_products') }}
+                                    </li>
+                                    {% else %}
+                                    <li class="mb-2">
+                                        <strong>{{ t('morning') }}:</strong> 
+                                        {{ t('gentle_cleansing') }}
+                                    </li>
+                                    <li class="mb-2">
+                                        <strong>{{ t('night') }}:</strong> 
+                                        {{ t('deep_nourishment') }}
+                                    </li>
+                                    {% endif %}
+                                    <li class="mb-2">
+                                        <strong>{{ t('everyday') }}:</strong> 
+                                        {{ t('sunscreen_advice') }}
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h5 class="text-info border-bottom pb-2 mb-3">
+                                    <i class="fas fa-calendar-week me-2"></i>
+                                    {{ t('weekly_treatments') or '주간 특별 관리' }}
+                                </h5>
+                                <ul class="ps-4">
+                                    {% if analysis.features.get('wrinkles', 0) > 0.5 or analysis.features.get('elasticity', 0) < 0.5 %}
+                                    <li class="mb-2">
+                                        {{ t('facial_massage_tip') or '페이셜 마사지로 혈액순환 촉진 및 탄력 개선 (주 2-3회)' }}
+                                    </li>
+                                    {% endif %}
+                                    {% if analysis.features.get('dryness', 0) > 0.5 or analysis.features.get('moisture', 0) < 0.5 %}
+                                    <li class="mb-2">
+                                        {{ t('hydrating_mask_tip') or '집중 보습 마스크로 수분 보충 (주 1-2회)' }}
+                                    </li>
+                                    {% endif %}
+                                    {% if analysis.features.get('pores', 0) > 0.5 or analysis.features.get('oiliness', 0) > 0.5 %}
+                                    <li class="mb-2">
+                                        {{ t('clay_mask_tip') or '클레이 마스크로 피지 조절 및 모공 관리 (주 1회)' }}
+                                    </li>
+                                    {% endif %}
+                                    {% if analysis.features.get('pigmentation', 0) > 0.5 or analysis.features.get('dark_spots', 0) > 0.5 %}
+                                    <li class="mb-2">
+                                        {{ t('vitamin_c_mask_tip') or '비타민 C 마스크로 피부 톤 개선 (주 1회)' }}
+                                    </li>
+                                    {% endif %}
+                                    <li class="mb-2">
+                                        {{ t('gentle_exfoliation_tip') or '부드러운 각질 제거로 피부 재생 촉진 (주 1회)' }}
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <h5 class="text-info border-bottom pb-2 mb-3">
+                                <i class="fas fa-star me-2"></i>
+                                {{ t('key_ingredients') or '핵심 성분 가이드' }}
+                            </h5>
+                            <div class="row">
+                                {% if analysis.features.get('wrinkles', 0) > 0.5 or analysis.features.get('fine_lines', 0) > 0.5 %}
+                                <div class="col-md-4 mb-3">
+                                    <div class="card bg-dark text-center">
+                                        <div class="card-body py-3">
+                                            <h6 class="mb-2">{{ t('retinol') or '레티놀' }}</h6>
+                                            <p class="small mb-0">{{ t('retinol_desc') or '주름 개선과 콜라겐 생성 촉진' }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% if analysis.features.get('pigmentation', 0) > 0.5 or analysis.features.get('dark_spots', 0) > 0.5 %}
+                                <div class="col-md-4 mb-3">
+                                    <div class="card bg-dark text-center">
+                                        <div class="card-body py-3">
+                                            <h6 class="mb-2">{{ t('vitamin_c') or '비타민 C' }}</h6>
+                                            <p class="small mb-0">{{ t('vitamin_c_desc') or '색소침착 완화 및 피부 톤 개선' }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% if analysis.features.get('dryness', 0) > 0.5 or analysis.features.get('moisture', 0) < 0.5 %}
+                                <div class="col-md-4 mb-3">
+                                    <div class="card bg-dark text-center">
+                                        <div class="card-body py-3">
+                                            <h6 class="mb-2">{{ t('hyaluronic_acid') or '히알루론산' }}</h6>
+                                            <p class="small mb-0">{{ t('hyaluronic_acid_desc') or '강력한 보습과 수분 보유력 향상' }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% if analysis.features.get('pores', 0) > 0.5 or analysis.features.get('oiliness', 0) > 0.5 %}
+                                <div class="col-md-4 mb-3">
+                                    <div class="card bg-dark text-center">
+                                        <div class="card-body py-3">
+                                            <h6 class="mb-2">{{ t('salicylic_acid') or '살리실산' }}</h6>
+                                            <p class="small mb-0">{{ t('salicylic_acid_desc') or '모공 정화 및 유분 조절' }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% if analysis.features.get('elasticity', 0) < 0.5 %}
+                                <div class="col-md-4 mb-3">
+                                    <div class="card bg-dark text-center">
+                                        <div class="card-body py-3">
+                                            <h6 class="mb-2">{{ t('peptides') or '펩타이드' }}</h6>
+                                            <p class="small mb-0">{{ t('peptides_desc') or '피부 탄력 강화 및 재생 촉진' }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                <div class="col-md-4 mb-3">
+                                    <div class="card bg-dark text-center">
+                                        <div class="card-body py-3">
+                                            <h6 class="mb-2">{{ t('niacinamide') or '나이아신아마이드' }}</h6>
+                                            <p class="small mb-0">{{ t('niacinamide_desc') or '다양한 피부 고민에 효과적인 만능 성분' }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tips Section -->
+            <div class="mt-5">
+                <h4 class="mb-3">{{ t('general_tips') }}</h4>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="card bg-dark h-100">
+                            <div class="card-body">
+                                <h5 class="card-title text-info">
+                                    <i class="fas fa-sun me-2"></i> {{ t('sun_protection') }}
+                                </h5>
+                                <p class="card-text">{{ t('sun_tip') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-dark h-100">
+                            <div class="card-body">
+                                <h5 class="card-title text-info">
+                                    <i class="fas fa-tint me-2"></i> {{ t('hydration') }}
+                                </h5>
+                                <p class="card-text">{{ t('hydration_tip') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-dark h-100">
+                            <div class="card-body">
+                                <h5 class="card-title text-info">
+                                    <i class="fas fa-moon me-2"></i> {{ t('sleep') }}
+                                </h5>
+                                <p class="card-text">{{ t('sleep_tip') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Share Result -->
+            <div class="mt-4 text-center">
+                {% if not is_guest and current_user.is_authenticated %}
+                    <!-- Show all features for logged-in users -->
+                    <a href="{{ url_for('download_pdf', analysis_id=analysis.id) }}" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-download me-1"></i> {{ t('save_report') or 'PDF 저장' }}
+                    </a>
+                    <button id="share-email-btn" class="btn btn-outline-info">
+                        <i class="fas fa-share-alt me-1"></i> {{ t('share_results') }}
+                    </button>
+                    <div class="mt-2">
+                        <small class="text-muted">{{ t('results_saved') }}</small>
+                    </div>
+                {% else %}
+                    <!-- For guest users, show login-required buttons -->
+                    <button id="login-required-pdf" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-download me-1"></i> {{ t('save_report') }}
+                    </button>
+                    <button id="login-required-share" class="btn btn-outline-info">
+                        <i class="fas fa-share-alt me-1"></i> {{ t('share_results') }}
+                    </button>
+                    <div class="mt-2">
+                        <small class="text-warning">{{ t('login_to_access_features') or '로그인하면 모든 기능을 이용할 수 있습니다.' }}</small>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Email Sharing Modal -->
+<div class="modal fade" id="shareModal" tabindex="-1" aria-labelledby="shareModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark">
+      <div class="modal-header">
+        <h5 class="modal-title" id="shareModalLabel">{{ t('share_results') }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="shareForm">
+          <div class="mb-3">
+            <label for="recipientEmail" class="form-label">{{ t('recipient_email') }}</label>
+            <input type="email" class="form-control" id="recipientEmail" required>
+          </div>
+          <div class="mb-3">
+            <label for="messageText" class="form-label">{{ t('message') }}</label>
+            <textarea class="form-control" id="messageText" rows="3"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ t('close') }}</button>
+        <button type="button" class="btn btn-info" id="sendEmailBtn">{{ t('send') }}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Additional JavaScript for this page -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Login-required buttons for guest users
+    const loginRequiredPdf = document.getElementById('login-required-pdf');
+    const loginRequiredShare = document.getElementById('login-required-share');
+    
+    if (loginRequiredPdf) {
+        loginRequiredPdf.addEventListener('click', function() {
+            showLoginRequiredMessage('PDF 저장');
+        });
+    }
+    
+    if (loginRequiredShare) {
+        loginRequiredShare.addEventListener('click', function() {
+            showLoginRequiredMessage('결과 공유');
+        });
+    }
+    
+    // Function to show login required message with tooltip and redirect to login page
+    function showLoginRequiredMessage(featureName) {
+        // 먼저 툴팁 표시
+        const tooltip = document.createElement('div');
+        tooltip.className = 'login-tooltip';
+        tooltip.innerHTML = `
+            <div class="card bg-warning text-dark">
+                <div class="card-body p-2">
+                    <p class="mb-1"><i class="fas fa-exclamation-triangle me-1"></i> {{ t("login_required_message") or "이 기능은 로그인 후 이용하실 수 있습니다." }}</p>
+                    <button class="btn btn-sm btn-dark login-now-btn">{{ t("login_now") or "로그인하기" }}</button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(tooltip);
+        
+        // 툴팁을 클릭한 버튼 주변에 배치
+        const button = event.currentTarget;
+        const rect = button.getBoundingClientRect();
+        tooltip.style.position = 'absolute';
+        tooltip.style.top = `${rect.bottom + window.scrollY + 5}px`;
+        tooltip.style.left = `${rect.left + window.scrollX}px`;
+        tooltip.style.zIndex = '1000';
+        
+        // 로그인 버튼 이벤트 리스너
+        const loginBtn = tooltip.querySelector('.login-now-btn');
+        loginBtn.addEventListener('click', function() {
+            // 세션에 현재 분석 ID 저장 (로그인 후 이 결과로 돌아올 수 있도록)
+            sessionStorage.setItem('last_analysis_id', '{{ analysis.id }}');
+            window.location.href = "{{ url_for('login') }}?last_analysis_id={{ analysis.id }}";
+        });
+        
+        // 툴팁 외부 클릭 시 닫기
+        document.addEventListener('click', function closeTooltip(e) {
+            if (!tooltip.contains(e.target) && e.target !== button) {
+                document.body.removeChild(tooltip);
+                document.removeEventListener('click', closeTooltip);
+            }
+        });
+    }
+    
+    // PDF Export with improved implementation
+    const savePdfBtn = document.getElementById('save-pdf-btn');
+    if (savePdfBtn) {
+        savePdfBtn.addEventListener('click', function() {
+        // Get the results container
+        const element = document.querySelector('.results-container');
+        
+        // Show loading indicator
+        const loadingToast = document.createElement('div');
+        loadingToast.className = 'position-fixed top-0 end-0 m-3 p-3 bg-dark text-light rounded';
+        loadingToast.style.zIndex = '9999';
+        loadingToast.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> PDF 생성 중...';
+        document.body.appendChild(loadingToast);
+        
+        try {
+            // Create a deep clone of the results container to avoid modifying the original
+            const clone = element.cloneNode(true);
+            // Apply some styles to optimize for PDF rendering
+            clone.style.width = '210mm';
+            clone.style.margin = '0';
+            clone.style.padding = '10mm';
+            clone.style.backgroundColor = '#121212';
+            clone.style.color = '#ffffff';
+            
+            // Create a temporary div to hold the clone
+            const tempDiv = document.createElement('div');
+            tempDiv.style.position = 'absolute';
+            tempDiv.style.top = '-9999px';
+            tempDiv.style.left = '-9999px';
+            tempDiv.appendChild(clone);
+            document.body.appendChild(tempDiv);
+            
+            // Use html2canvas to render the element
+            html2canvas(clone, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#121212',
+                logging: false,
+                onclone: function(clonedDoc) {
+                    // Make sure all images are visible in the clone
+                    const images = clonedDoc.querySelectorAll('img');
+                    images.forEach(img => {
+                        img.crossOrigin = 'anonymous';
+                    });
+                }
+            }).then(function(canvas) {
+                // Clean up the temporary div
+                document.body.removeChild(tempDiv);
+                
+                // Create PDF using jsPDF
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                
+                // Calculate dimensions
+                const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                const canvasWidth = canvas.width;
+                const canvasHeight = canvas.height;
+                const ratio = Math.min(pdfWidth / canvasWidth, pdfHeight / canvasHeight);
+                const imgWidth = canvasWidth * ratio;
+                const imgHeight = canvasHeight * ratio;
+                const x = (pdfWidth - imgWidth) / 2; // Center on page
+                
+                // Add image to PDF
+                pdf.addImage(imgData, 'JPEG', x, 10, imgWidth, imgHeight);
+                
+                // Save PDF
+                pdf.save('SkinDiary_Report_{{ analysis.id }}.pdf');
+                
+                // Remove loading indicator
+                document.body.removeChild(loadingToast);
+                
+                // Show success message
+                const successToast = document.createElement('div');
+                successToast.className = 'position-fixed top-0 end-0 m-3 p-3 bg-success text-light rounded';
+                successToast.style.zIndex = '9999';
+                successToast.innerHTML = '<i class="fas fa-check-circle me-2"></i> PDF가 성공적으로 생성되었습니다.';
+                document.body.appendChild(successToast);
+                
+                // Remove success message after 3 seconds
+                setTimeout(() => {
+                    document.body.removeChild(successToast);
+                }, 3000);
+            }).catch(function(error) {
+                console.error('Canvas rendering error:', error);
+                document.body.removeChild(tempDiv);
+                
+                // Remove loading indicator
+                document.body.removeChild(loadingToast);
+                
+                // Show error message
+                const errorToast = document.createElement('div');
+                errorToast.className = 'position-fixed top-0 end-0 m-3 p-3 bg-danger text-light rounded';
+                errorToast.style.zIndex = '9999';
+                errorToast.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i> PDF 캔버스 생성 중 오류가 발생했습니다.';
+                document.body.appendChild(errorToast);
+                
+                // Remove error message after 3 seconds
+                setTimeout(() => {
+                    document.body.removeChild(errorToast);
+                }, 3000);
+            });
+        } catch (e) {
+            console.error('PDF generation failed:', e);
+            // Remove loading indicator
+            document.body.removeChild(loadingToast);
+            
+            // Show error message
+            const errorToast = document.createElement('div');
+            errorToast.className = 'position-fixed top-0 end-0 m-3 p-3 bg-danger text-light rounded';
+            errorToast.style.zIndex = '9999';
+            errorToast.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i> PDF 생성 중 오류가 발생했습니다.';
+            document.body.appendChild(errorToast);
+            
+            // Remove error message after 3 seconds
+            setTimeout(() => {
+                document.body.removeChild(errorToast);
+            }, 3000);
+        }
+    });
+    
+    // Email sharing
+    const shareEmailBtn = document.getElementById('share-email-btn');
+    if (shareEmailBtn) {
+        shareEmailBtn.addEventListener('click', function() {
+        const shareModal = new bootstrap.Modal(document.getElementById('shareModal'));
+        shareModal.show();
+    });
+    
+    document.getElementById('sendEmailBtn').addEventListener('click', function() {
+        const email = document.getElementById('recipientEmail').value;
+        const message = document.getElementById('messageText').value;
+        
+        // This is just a mock function for now
+        // In a real implementation, this would call an API endpoint
+        alert(`Your results would be shared with ${email}`);
+        
+        // Close the modal
+        const shareModal = bootstrap.Modal.getInstance(document.getElementById('shareModal'));
+        shareModal.hide();
+    });
+});
+</script>
+{% endblock %}

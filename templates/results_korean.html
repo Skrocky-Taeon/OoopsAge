@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>분석 결과 - 나이맞히기</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts - Korean -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#FF6B6B">
+    <link rel="manifest" href="/static/manifest.json">
+    
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin: 2rem 0;
+            overflow: hidden;
+        }
+        
+        .header-section {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .result-section {
+            padding: 3rem 2rem;
+        }
+        
+        .age-result-card {
+            background: linear-gradient(45deg, #fff3e0, #e8f5e8);
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .age-number {
+            font-size: 4rem;
+            font-weight: 700;
+            color: #FF6B6B;
+            margin: 1rem 0;
+        }
+        
+        .comparison-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .image-display {
+            max-width: 100%;
+            height: auto;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        
+        .feature-analysis {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        .feature-bar {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 20px;
+            margin: 0.5rem 0;
+            overflow: hidden;
+        }
+        
+        .feature-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4ECDC4, #FF6B6B);
+            border-radius: 10px;
+            transition: width 1s ease-in-out;
+        }
+        
+        .feedback-section {
+            background: linear-gradient(45deg, #e3f2fd, #f3e5f5);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            border-left: 5px solid #4ECDC4;
+        }
+        
+        .product-recommendations {
+            background: #fff;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        .product-card {
+            background: linear-gradient(45deg, #fafafa, #f5f5f5);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #FF6B6B;
+            transition: transform 0.3s ease;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .btn-korean {
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary-korean {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            border: none;
+            color: white;
+        }
+        
+        .btn-outline-korean {
+            border: 2px solid #FF6B6B;
+            color: #FF6B6B;
+            background: transparent;
+        }
+        
+        .btn-outline-korean:hover {
+            background: #FF6B6B;
+            color: white;
+        }
+        
+        .badge-feature {
+            background: #4ECDC4;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            margin: 0.2rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        
+        .stat-icon {
+            font-size: 2rem;
+            color: #4ECDC4;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-container">
+            <!-- Header Section -->
+            <div class="header-section">
+                <h1>🎯 분석 완료!</h1>
+                <p>AI가 분석한 결과를 확인해보세요</p>
+            </div>
+
+            <div class="result-section">
+                <!-- Main Age Result -->
+                <div class="age-result-card">
+                    <h2>추정 나이</h2>
+                    <div class="age-number">{{ "%.1f"|format(analysis.skin_age) }}세</div>
+                    {% if analysis.actual_age %}
+                        <div class="comparison-section">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <h5><i class="fas fa-user text-primary"></i> 실제 나이</h5>
+                                    <span class="h4">{{ analysis.actual_age }}세</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5><i class="fas fa-chart-line text-success"></i> 차이</h5>
+                                    {% set age_diff = analysis.skin_age - analysis.actual_age %}
+                                    <span class="h4 {% if age_diff > 0 %}text-danger{% else %}text-success{% endif %}">
+                                        {% if age_diff > 0 %}+{% endif %}{{ "%.1f"|format(age_diff) }}세
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Image Display -->
+                <div class="text-center mb-4">
+                    <img src="{{ analysis.image_url }}" alt="분석된 이미지" class="image-display" style="max-height: 400px;">
+                </div>
+
+                <!-- Feature Analysis -->
+                <div class="feature-analysis">
+                    <h3><i class="fas fa-microscope text-primary"></i> 상세 분석 결과</h3>
+                    <div class="stats-grid">
+                        {% for feature, value in analysis.features.items() %}
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    {% if feature == 'wrinkles' %}<i class="fas fa-wave-square"></i>
+                                    {% elif feature == 'pigmentation' %}<i class="fas fa-palette"></i>
+                                    {% elif feature == 'moisture' %}<i class="fas fa-tint"></i>
+                                    {% elif feature == 'texture' %}<i class="fas fa-texture"></i>
+                                    {% else %}<i class="fas fa-eye"></i>{% endif %}
+                                </div>
+                                <h6>
+                                    {% if feature == 'wrinkles' %}주름
+                                    {% elif feature == 'pigmentation' %}색소침착
+                                    {% elif feature == 'moisture' %}수분
+                                    {% elif feature == 'texture' %}피부결
+                                    {% elif feature == 'dryness' %}건조함
+                                    {% elif feature == 'oiliness' %}유분
+                                    {% else %}{{ feature }}{% endif %}
+                                </h6>
+                                <div class="feature-bar">
+                                    <div class="feature-fill" style="width: {{ (value * 100)|int }}%"></div>
+                                </div>
+                                <small>{{ (value * 100)|int }}%</small>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- AI Feedback -->
+                <div class="feedback-section">
+                    <h3><i class="fas fa-comment-dots text-info"></i> AI 분석 의견</h3>
+                    <p class="lead">{{ analysis.feedback|nl2br|safe }}</p>
+                </div>
+
+                <!-- Product Recommendations -->
+                {% if analysis.recommended_products %}
+                <div class="product-recommendations">
+                    <h3><i class="fas fa-shopping-bag text-warning"></i> 추천 제품 정보</h3>
+                    <p class="text-muted mb-3">분석 결과를 바탕으로 도움이 될 수 있는 제품 카테고리입니다</p>
+                    
+                    <div class="row">
+                        {% for product in analysis.recommended_products %}
+                        <div class="col-md-4 mb-3">
+                            <div class="product-card">
+                                <span class="badge-feature">{{ product.category }}</span>
+                                <h5 class="mt-2">{{ product.name }}</h5>
+                                <p class="small text-muted">{{ product.description }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <small>위 정보는 참고용이며, 구체적인 제품 선택은 전문가와 상담하시기 바랍니다.</small>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Action Buttons -->
+                <div class="text-center mt-4">
+                    <a href="{{ url_for('download_pdf', analysis_id=analysis.id) }}" 
+                       class="btn btn-primary-korean btn-korean me-3">
+                        <i class="fas fa-download me-2"></i>PDF 다운로드
+                    </a>
+                    <a href="{{ url_for('index') }}" 
+                       class="btn btn-outline-korean btn-korean">
+                        <i class="fas fa-camera me-2"></i>새로 분석하기
+                    </a>
+                </div>
+
+                <!-- Share Section -->
+                <div class="mt-4 p-3 bg-light rounded">
+                    <h5><i class="fas fa-share-alt text-primary"></i> 결과 공유하기</h5>
+                    <p class="small text-muted">친구들과 재미있는 결과를 공유해보세요!</p>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-primary" onclick="shareResult()">
+                            <i class="fab fa-facebook"></i> 페이스북
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" onclick="shareResult()">
+                            <i class="fab fa-twitter"></i> 트위터
+                        </button>
+                        <button class="btn btn-sm btn-outline-success" onclick="copyLink()">
+                            <i class="fas fa-link"></i> 링크 복사
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Animate feature bars on load
+        window.addEventListener('load', function() {
+            const fills = document.querySelectorAll('.feature-fill');
+            fills.forEach(fill => {
+                const width = fill.style.width;
+                fill.style.width = '0%';
+                setTimeout(() => {
+                    fill.style.width = width;
+                }, 500);
+            });
+        });
+
+        function shareResult() {
+            if (navigator.share) {
+                navigator.share({
+                    title: '나이맞히기 결과',
+                    text: 'AI가 분석한 내 나이는 {{ "%.1f"|format(analysis.skin_age) }}세!',
+                    url: window.location.href
+                });
+            } else {
+                alert('이 브라우저는 공유 기능을 지원하지 않습니다.');
+            }
+        }
+
+        function copyLink() {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                alert('링크가 복사되었습니다!');
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>실시간 성능 대시보드 - Ooops Age</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #fff;
+            font-family: 'Arial', sans-serif;
+        }
+        .dashboard-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+        .metric-card {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #404040;
+            transition: transform 0.3s ease;
+        }
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #4fc3f7;
+        }
+        .metric-label {
+            color: #b0bec5;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+        .chart-container {
+            background: #2c3e50;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .real-time-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background-color: #4caf50;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        .recent-analysis {
+            background: #37474f;
+            border-left: 4px solid #4fc3f7;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        .age-badge {
+            background: #667eea;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+        }
+        .time-range-selector {
+            background: #34495e;
+            border: none;
+            color: #fff;
+            padding: 8px 15px;
+            border-radius: 20px;
+            margin: 0 5px;
+        }
+        .time-range-selector.active {
+            background: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="mb-0">
+                        <i class="fas fa-chart-line me-3"></i>
+                        실시간 성능 인사이트 대시보드
+                    </h1>
+                    <p class="mb-0 mt-2 opacity-75">
+                        <span class="real-time-indicator"></span>
+                        Ooops Age 분석 실시간 모니터링
+                    </p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="time-range-controls">
+                        <button class="time-range-selector active" data-range="1h">1시간</button>
+                        <button class="time-range-selector" data-range="24h">24시간</button>
+                        <button class="time-range-selector" data-range="7d">7일</button>
+                        <button class="time-range-selector" data-range="30d">30일</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <!-- 주요 지표 행 -->
+        <div class="row">
+            <div class="col-lg-3 col-md-6">
+                <div class="metric-card text-center">
+                    <div class="metric-value" id="total-analyses">0</div>
+                    <div class="metric-label">총 분석 수</div>
+                    <small class="text-muted">선택된 기간</small>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="metric-card text-center">
+                    <div class="metric-value" id="usage-today">0</div>
+                    <div class="metric-label">오늘 사용량</div>
+                    <small class="text-muted">현재 일자</small>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="metric-card text-center">
+                    <div class="metric-value" id="registered-users">0</div>
+                    <div class="metric-label">등록 사용자</div>
+                    <small class="text-muted">vs 익명 사용자</small>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="metric-card text-center">
+                    <div class="metric-value" id="daily-average">0</div>
+                    <div class="metric-label">일평균</div>
+                    <small class="text-muted">전체 기간</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- 차트 행 -->
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="chart-container">
+                    <h5 class="mb-3">
+                        <i class="fas fa-chart-area me-2"></i>
+                        시간별 분석 분포
+                    </h5>
+                    <canvas id="hourlyChart" height="100"></canvas>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="chart-container">
+                    <h5 class="mb-3">
+                        <i class="fas fa-chart-pie me-2"></i>
+                        나이 분포
+                    </h5>
+                    <canvas id="ageChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- 피처 분석 및 최근 활동 -->
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <h5 class="mb-3">
+                        <i class="fas fa-microscope me-2"></i>
+                        피처 분석 평균
+                    </h5>
+                    <canvas id="featureChart" height="150"></canvas>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <h5 class="mb-3">
+                        <i class="fas fa-clock me-2"></i>
+                        최근 분석
+                        <small class="text-muted">(실시간 피드)</small>
+                    </h5>
+                    <div id="recent-analyses" style="max-height: 300px; overflow-y: auto;">
+                        <!-- 최근 분석 결과가 여기에 로드됩니다 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 사용자 유형 분석 -->
+        <div class="row">
+            <div class="col-12">
+                <div class="chart-container">
+                    <h5 class="mb-3">
+                        <i class="fas fa-users me-2"></i>
+                        사용자 유형 분포
+                    </h5>
+                    <div class="row text-center">
+                        <div class="col-md-6">
+                            <div class="metric-card">
+                                <div class="metric-value text-success" id="registered-percent">0%</div>
+                                <div class="metric-label">등록 사용자</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="metric-card">
+                                <div class="metric-value text-warning" id="anonymous-percent">0%</div>
+                                <div class="metric-label">익명 사용자</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let charts = {};
+        let currentRange = '24h';
+
+        function initCharts() {
+            // 시간별 분포 차트
+            const hourlyCtx = document.getElementById('hourlyChart').getContext('2d');
+            charts.hourly = new Chart(hourlyCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: '시간당 분석 수',
+                        data: [],
+                        borderColor: '#4fc3f7',
+                        backgroundColor: 'rgba(79, 195, 247, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#fff' }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#fff' },
+                            grid: { color: '#404040' }
+                        },
+                        y: {
+                            ticks: { color: '#fff' },
+                            grid: { color: '#404040' }
+                        }
+                    }
+                }
+            });
+
+            // 나이 분포 차트
+            const ageCtx = document.getElementById('ageChart').getContext('2d');
+            charts.age = new Chart(ageCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['0-20', '21-30', '31-40', '41-50', '51+'],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: [
+                            '#4fc3f7',
+                            '#66bb6a',
+                            '#ffa726',
+                            '#ef5350',
+                            '#ab47bc'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#fff' }
+                        }
+                    }
+                }
+            });
+
+            // 피처 분석 차트
+            const featureCtx = document.getElementById('featureChart').getContext('2d');
+            charts.feature = new Chart(featureCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['주름', '다크스팟', '피부결', '수분'],
+                    datasets: [{
+                        label: '평균 피처 점수',
+                        data: [],
+                        borderColor: '#4fc3f7',
+                        backgroundColor: 'rgba(79, 195, 247, 0.1)',
+                        pointBackgroundColor: '#4fc3f7'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#fff' }
+                        }
+                    },
+                    scales: {
+                        r: {
+                            ticks: { color: '#fff' },
+                            grid: { color: '#404040' },
+                            pointLabels: { color: '#fff' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function loadAnalytics() {
+            fetch(`/dashboard/api/analytics?range=${currentRange}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('total-analyses').textContent = data.total_analyses;
+                    
+                    // 시간별 차트 업데이트
+                    charts.hourly.data.labels = data.hourly_distribution.map(d => d.label);
+                    charts.hourly.data.datasets[0].data = data.hourly_distribution.map(d => d.count);
+                    charts.hourly.update();
+
+                    // 나이 분포 차트 업데이트
+                    charts.age.data.datasets[0].data = Object.values(data.age_distribution);
+                    charts.age.update();
+
+                    // 피처 차트 업데이트
+                    charts.feature.data.datasets[0].data = [
+                        data.feature_averages.wrinkles || 0,
+                        data.feature_averages.dark_spots || 0,
+                        data.feature_averages.texture || 0,
+                        data.feature_averages.moisture || 0
+                    ];
+                    charts.feature.update();
+                })
+                .catch(error => console.error('분석 데이터 로드 오류:', error));
+        }
+
+        function loadUsageStats() {
+            fetch('/dashboard/api/usage-stats')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('usage-today').textContent = data.usage_stats.today;
+                    document.getElementById('daily-average').textContent = data.daily_average;
+                    
+                    const total = data.user_types.registered + data.user_types.anonymous;
+                    if (total > 0) {
+                        const registeredPercent = Math.round((data.user_types.registered / total) * 100);
+                        const anonymousPercent = 100 - registeredPercent;
+                        
+                        document.getElementById('registered-users').textContent = data.user_types.registered;
+                        document.getElementById('registered-percent').textContent = registeredPercent + '%';
+                        document.getElementById('anonymous-percent').textContent = anonymousPercent + '%';
+                    }
+                })
+                .catch(error => console.error('사용량 통계 로드 오류:', error));
+        }
+
+        function loadRecentAnalyses() {
+            fetch('/dashboard/api/recent-analyses?limit=5')
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('recent-analyses');
+                    container.innerHTML = '';
+                    
+                    data.forEach(analysis => {
+                        const analysisElement = document.createElement('div');
+                        analysisElement.className = 'recent-analysis';
+                        
+                        const createdAt = new Date(analysis.created_at);
+                        const timeAgo = getTimeAgo(createdAt);
+                        
+                        analysisElement.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="age-badge">예상 나이: ${Math.round(analysis.skin_age)}</span>
+                                    ${analysis.actual_age ? `<small class="text-muted ms-2">실제: ${analysis.actual_age}</small>` : ''}
+                                </div>
+                                <small class="text-muted">${timeAgo}</small>
+                            </div>
+                            <div class="mt-2">
+                                <small class="text-info">감지된 피처: ${Object.keys(analysis.features).length}개</small>
+                            </div>
+                        `;
+                        
+                        container.appendChild(analysisElement);
+                    });
+                })
+                .catch(error => console.error('최근 분석 로드 오류:', error));
+        }
+
+        function getTimeAgo(date) {
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            
+            if (diffMins < 1) return '방금 전';
+            if (diffMins < 60) return `${diffMins}분 전`;
+            if (diffMins < 1440) return `${Math.floor(diffMins / 60)}시간 전`;
+            return `${Math.floor(diffMins / 1440)}일 전`;
+        }
+
+        // 시간 범위 선택기 이벤트 핸들러
+        document.querySelectorAll('.time-range-selector').forEach(button => {
+            button.addEventListener('click', function() {
+                document.querySelectorAll('.time-range-selector').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentRange = this.dataset.range;
+                loadAnalytics();
+            });
+        });
+
+        // 대시보드 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            initCharts();
+            loadAnalytics();
+            loadUsageStats();
+            loadRecentAnalyses();
+            
+            // 30초마다 데이터 새로고침
+            setInterval(() => {
+                loadAnalytics();
+                loadUsageStats();
+                loadRecentAnalyses();
+            }, 30000);
+        });
+    </script>
+</body>
+</html>

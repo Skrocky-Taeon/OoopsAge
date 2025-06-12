@@ -1,0 +1,264 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-12">
+        <div class="results-container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>{{ t('compare_results') }}</h2>
+                <div>
+                    <a href="{{ url_for('history') }}" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-history me-1"></i> {{ t('history_btn') }}
+                    </a>
+                    <a href="/" class="btn btn-outline-info">
+                        <i class="fas fa-camera me-1"></i> {{ t('new_analysis') }}
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Image Comparison at top -->
+            <div class="card bg-dark mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-5 text-center">
+                            <div class="position-relative">
+                                <img src="{{ analysis1.image_url }}" alt="First analysis image" class="img-fluid rounded" style="max-height: 300px;">
+                                <div class="position-absolute top-0 start-0 bg-dark bg-opacity-75 rounded-circle p-2 m-2">
+                                    <span class="badge bg-info">1</span>
+                                </div>
+                                <div class="mt-2">
+                                    <small class="text-muted">{{ analysis1.created_at.strftime('%Y-%m-%d') }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-2 d-flex justify-content-center align-items-center my-3">
+                            <div class="d-none d-md-block">
+                                <i class="fas fa-exchange-alt fa-3x text-info"></i>
+                            </div>
+                            <div class="d-md-none">
+                                <i class="fas fa-arrow-down fa-3x text-info"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-5 text-center">
+                            <div class="position-relative">
+                                <img src="{{ analysis2.image_url }}" alt="Second analysis image" class="img-fluid rounded" style="max-height: 300px;">
+                                <div class="position-absolute top-0 start-0 bg-dark bg-opacity-75 rounded-circle p-2 m-2">
+                                    <span class="badge bg-info">2</span>
+                                </div>
+                                <div class="mt-2">
+                                    <small class="text-muted">{{ analysis2.created_at.strftime('%Y-%m-%d') }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Skin Age Comparison -->
+            <div class="card bg-dark mb-4">
+                <div class="card-header">
+                    <h4 class="mb-0">{{ t('skin_age_change') }}</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-5 text-center">
+                            <div class="skin-age-display">
+                                {{ analysis1.skin_age|round(1) }}
+                                <small class="d-block fs-6 text-muted">{{ t('estimated_skin_age') }}</small>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-2 d-flex justify-content-center align-items-center my-3">
+                            {% set age_diff = analysis2.skin_age - analysis1.skin_age %}
+                            <div class="text-center">
+                                {% if age_diff > 0 %}
+                                    <i class="fas fa-arrow-up fa-2x text-danger"></i>
+                                    <div><span class="badge bg-danger">+{{ age_diff|round(1) }}</span></div>
+                                {% elif age_diff < 0 %}
+                                    <i class="fas fa-arrow-down fa-2x text-success"></i>
+                                    <div><span class="badge bg-success">{{ age_diff|round(1) }}</span></div>
+                                {% else %}
+                                    <i class="fas fa-equals fa-2x text-info"></i>
+                                    <div><span class="badge bg-info">0</span></div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-5 text-center">
+                            <div class="skin-age-display">
+                                {{ analysis2.skin_age|round(1) }}
+                                <small class="d-block fs-6 text-muted">{{ t('estimated_skin_age') }}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Features Comparison -->
+            <div class="card bg-dark mb-4">
+                <div class="card-header">
+                    <h4 class="mb-0">{{ t('features_analysis') }}</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Get all unique features from both analyses -->
+                    {% set features1 = analysis1.features.keys()|list %}
+                    {% set features2 = analysis2.features.keys()|list %}
+                    {% set all_features = (features1 + features2)|unique %}
+                    
+                    {% for feature_name in all_features %}
+                        {% set value1 = analysis1.features.get(feature_name, 0) %}
+                        {% set value2 = analysis2.features.get(feature_name, 0) %}
+                        {% set diff = value2 - value1 %}
+                        {% set diff_class = "text-success" if diff < 0 else "text-danger" if diff > 0 else "" %}
+                        {% set highlight = feature_name in feature_differences %}
+                        
+                        <div class="feature-comparison mb-4 {% if highlight %}border-start border-4 ps-3 {% if diff < 0 %}border-success{% else %}border-danger{% endif %}{% endif %}">
+                            <h5 class="text-capitalize mb-3">{{ get_feature_name(feature_name) }}</h5>
+                            <div class="row">
+                                <div class="col-md-5">
+                                    <div class="feature-bar">
+                                        <div class="feature-fill" style="width: {{ value1 * 100 }}%;"></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mt-1">
+                                        <small>{{ t('analysis') }} 1</small>
+                                        <small>{{ (value1 * 100)|round|int }}%</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-2 d-flex justify-content-center align-items-center my-2">
+                                    {% if highlight %}
+                                        {% if diff < 0 %}
+                                            <span class="badge bg-success">-{{ feature_differences[feature_name].percent_change }}%</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">+{{ feature_differences[feature_name].percent_change }}%</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ (diff * 100)|round|int }}%</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-5">
+                                    <div class="feature-bar">
+                                        <div class="feature-fill" style="width: {{ value2 * 100 }}%;"></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mt-1">
+                                        <small>{{ t('analysis') }} 2</small>
+                                        <small>{{ (value2 * 100)|round|int }}%</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Comparison Summary & Recommendations -->
+            <div class="card bg-dark mt-4">
+                <div class="card-header">
+                    <h4 class="mb-0">{{ t('comparison_summary') }}</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-lg-4">
+                            <div class="card bg-dark border border-info h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title text-info">{{ t('skin_age_change') }}</h5>
+                                    {% set age_diff = analysis2.skin_age - analysis1.skin_age %}
+                                    <p class="card-text">
+                                        {% if age_diff > 0 %}
+                                            <span class="text-danger">+{{ age_diff|round(1) }}</span> {{ t('age_increased') }}
+                                        {% elif age_diff < 0 %}
+                                            <span class="text-success">{{ age_diff|round(1) }}</span> {{ t('age_decreased') }}
+                                        {% else %}
+                                            <span class="text-info">{{ t('no_change') }}</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-4">
+                            <div class="card bg-dark border border-info h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title text-info">{{ t('most_improved') }}</h5>
+                                    {% set most_improved = {'name': '', 'diff': 0} %}
+                                    {% for feature_name, value1 in analysis1.features.items() %}
+                                        {% set value2 = analysis2.features.get(feature_name, 0) %}
+                                        {% set improvement = value1 - value2 %}
+                                        {% if feature_name in ['wrinkles', 'fine_lines', 'dark_spots', 'pores', 'dryness'] and improvement > most_improved.diff %}
+                                            {% set _ = most_improved.update({'name': feature_name, 'diff': improvement}) %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    
+                                    {% if most_improved.name %}
+                                        <p class="card-text">{{ get_feature_name(most_improved.name) }} <span class="text-success">(-{{ (most_improved.diff * 100)|round|int }}%)</span></p>
+                                    {% else %}
+                                        <p class="card-text">{{ t('no_improvement_found') }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-4">
+                            <div class="card bg-dark border border-info h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title text-info">{{ t('needs_attention') }}</h5>
+                                    {% set needs_attention = {'name': '', 'diff': 0} %}
+                                    {% for feature_name, value1 in analysis1.features.items() %}
+                                        {% set value2 = analysis2.features.get(feature_name, 0) %}
+                                        {% set worsening = value2 - value1 %}
+                                        {% if feature_name in ['wrinkles', 'fine_lines', 'dark_spots', 'pores', 'dryness'] and worsening > needs_attention.diff %}
+                                            {% set _ = needs_attention.update({'name': feature_name, 'diff': worsening}) %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    
+                                    {% if needs_attention.name %}
+                                        <p class="card-text">{{ get_feature_name(needs_attention.name) }} <span class="text-danger">(+{{ (needs_attention.diff * 100)|round|int }}%)</span></p>
+                                    {% else %}
+                                        <p class="card-text">{{ t('no_worsening_found') }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Actions Button -->
+            <div class="mt-4 text-center">
+                <button id="save-comparison-pdf" class="btn btn-outline-secondary me-2">
+                    <i class="fas fa-download me-1"></i> {{ t('save_comparison_report') }}
+                </button>
+                <a href="{{ url_for('results', analysis_id=analysis2.id) }}" class="btn btn-info">
+                    <i class="fas fa-chart-bar me-1"></i> {{ t('view_latest_analysis') }}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Additional JavaScript for PDF export -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // PDF Export for comparison
+    document.getElementById('save-comparison-pdf').addEventListener('click', function() {
+        // Get the results container
+        const element = document.querySelector('.results-container');
+        
+        // Set options for PDF generation
+        const opt = {
+            margin: 10,
+            filename: 'SkinDiary_Comparison_{{ analysis1.id }}_{{ analysis2.id }}.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        
+        // Generate and save PDF
+        html2pdf().set(opt).from(element).save();
+    });
+});
+</script>
+{% endblock %}

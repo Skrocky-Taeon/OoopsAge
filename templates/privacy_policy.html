@@ -1,0 +1,72 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card bg-dark">
+                <div class="card-header">
+                    <h2 class="mb-0">Privacy Policy</h2>
+                    <small class="text-muted">Last updated: {{ current_date }}</small>
+                </div>
+                <div class="card-body">
+                    <h4>1. Information We Collect</h4>
+                    <p>Ooops Age is designed to minimize data collection. We only collect:</p>
+                    <ul>
+                        <li><strong>Images:</strong> Photos you upload for age analysis (temporarily stored)</li>
+                        <li><strong>Analysis Results:</strong> Generated age estimates and analysis data</li>
+                        <li><strong>Session Data:</strong> Temporary session identifiers for functionality</li>
+                    </ul>
+
+                    <h4>2. How We Use Information</h4>
+                    <p>Your information is used solely to:</p>
+                    <ul>
+                        <li>Process uploaded images for age analysis</li>
+                        <li>Display analysis results to you</li>
+                        <li>Generate downloadable PDF reports</li>
+                        <li>Maintain session continuity during your visit</li>
+                    </ul>
+
+                    <h4>3. Data Storage and Security</h4>
+                    <ul>
+                        <li><strong>Temporary Storage:</strong> Images are stored temporarily for processing</li>
+                        <li><strong>No Permanent Storage:</strong> We do not permanently store your photos</li>
+                        <li><strong>Session-Based:</strong> Analysis history is tied to your browser session only</li>
+                        <li><strong>No User Accounts:</strong> We do not require registration or create user profiles</li>
+                    </ul>
+
+                    <h4>4. Information Sharing</h4>
+                    <p>We do not share, sell, or distribute your personal information to third parties. Your photos and analysis results remain private to your session.</p>
+
+                    <h4>5. Cookies and Tracking</h4>
+                    <p>We use minimal session cookies necessary for app functionality. We do not use tracking cookies or analytics that identify you personally.</p>
+
+                    <h4>6. Your Rights</h4>
+                    <ul>
+                        <li><strong>Access:</strong> View your analysis results during your session</li>
+                        <li><strong>Deletion:</strong> Close your browser to automatically clear session data</li>
+                        <li><strong>Control:</strong> Choose what photos to upload and analyze</li>
+                    </ul>
+
+                    <h4>7. Age Requirements</h4>
+                    <p>This app is suitable for all ages. No personal information is required to use our service.</p>
+
+                    <h4>8. Entertainment Purpose</h4>
+                    <p><strong>Important:</strong> Ooops Age is designed for entertainment purposes only. It is not a medical device, diagnostic tool, or scientific instrument. Results are playful guesses and should not be used for any serious decision-making.</p>
+
+                    <h4>9. Changes to Privacy Policy</h4>
+                    <p>We may update this privacy policy occasionally. Any changes will be posted on this page with an updated date.</p>
+
+                    <h4>10. Contact Information</h4>
+                    <p>If you have questions about this privacy policy, please contact us through the app feedback system.</p>
+
+                    <div class="alert alert-info mt-4">
+                        <h5>Summary</h5>
+                        <p class="mb-0">Ooops Age processes your photos temporarily for fun age analysis. We don't store your photos permanently, don't require accounts, and don't share your data. It's entertainment only, not medical or diagnostic.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
